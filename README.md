@@ -8,7 +8,6 @@ go build passwordnova.go
 ```
 It outputs passwordnova_result.txt contains the result from proxynova in format of [user email addaress]:[password]
 
-passwordnova_result.txt:
 ![image](https://github.com/restdone/passwordnova/assets/42227817/baed1f09-4f30-433b-be9d-81ed4c51af7a)
 
 
