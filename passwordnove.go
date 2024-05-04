@@ -84,16 +84,6 @@ func main() {
 					return
 				}
 
-				// Filter results based on the filter string if provided
-				if *filterString != "" {
-					filteredLines := []string{}
-					for _, line := range resp.Lines {
-						if strings.Contains(line, *filterString) {
-							filteredLines = append(filteredLines, line)
-						}
-					}
-					resp.Lines = filteredLines
-				}
 
 				// Process and send response to results channel
 				for _, line := range resp.Lines {
