@@ -18,7 +18,6 @@ It outputs passwordnova_result.txt contains the result from proxynova in format 
 
 -nonum skip the line if the password is numberonly
 
-It shows the username with more then 4 password. 
 
 Output files can be used by hydra to perform combination test
 ```
