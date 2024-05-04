@@ -6,7 +6,7 @@ passwordnova.go
 go build passwordnova.go
 ./passwordnove -u <username list file> -t
 ```
-Fenerates passwordnova_result.txt containing the result from proxynova in format of [user email addaress]:[password]
+Generates passwordnova_result.txt containing the result from proxynova in format of [user email addaress]:[password]
 
 ![image](https://github.com/restdone/passwordnova/assets/42227817/baed1f09-4f30-433b-be9d-81ed4c51af7a)
 
