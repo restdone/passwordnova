@@ -21,13 +21,12 @@ func main() {
 	// Define command-line flags
 	usernameFile := flag.String("u", "", "Path to the file containing usernames")
 	filterString := flag.String("d", "", "String to filter the lines")
-	outputFile := flag.String("o", "", "Path to the output file")
+	trimFlag := flag.Bool("t", false, "Flag to trim domain from email addresses")
 	flag.Parse()
 
-	// Check if the username file and output file flags are provided
-	if *usernameFile == "" || *outputFile == "" {
-		fmt.Println("Please provide a path to the file containing usernames using the -u flag and specify the output file using the -o flag")
-		fmt.Println("Use -d to filter what to search in result")
+	// Check if the username file flag is provided
+	if *usernameFile == "" {
+		fmt.Println("Please provide a path to the file containing usernames using the -u flag")
 		return
 	}
 
@@ -54,6 +53,10 @@ func main() {
 
 	// Create a channel to collect results from goroutines
 	results := make(chan string)
+
+	// Create a map to store unique passwords for each username
+	passwordMap := make(map[string]map[string]bool)
+	var passwordMutex sync.Mutex
 
 	// Spawn multiple goroutines to make requests concurrently
 	for _, username := range usernames {
@@ -95,7 +98,30 @@ func main() {
 
 				// Process and send response to results channel
 				for _, line := range resp.Lines {
-					results <- line
+					// Split the line by ":" to extract username and password
+					parts := strings.Split(line, ":")
+					if len(parts) == 2 {
+						username := parts[0]
+						password := parts[1]
+
+						// Skip line if password is empty
+						if password == "" {
+							continue
+						}
+
+						// Check if username exists in the passwordMap
+						passwordMutex.Lock()
+						if _, ok := passwordMap[username]; !ok {
+							passwordMap[username] = make(map[string]bool)
+						}
+
+						// Check if password is unique for the username
+						if !passwordMap[username][password] {
+							passwordMap[username][password] = true
+							results <- line
+						}
+						passwordMutex.Unlock()
+					}
 				}
 			}
 		}(username)
@@ -107,8 +133,11 @@ func main() {
 		close(results)
 	}()
 
+	// Define output file name
+	outputFile := "passwordnova_result.txt"
+
 	// Open the output file for writing
-	outFile, err := os.Create(*outputFile)
+	outFile, err := os.Create(outputFile)
 	if err != nil {
 		fmt.Println("Error creating output file:", err)
 		return
@@ -126,5 +155,64 @@ func main() {
 	}
 	writer.Flush()
 
-	fmt.Println("Results have been exported to", *outputFile)
+	fmt.Println("Results have been exported to", outputFile)
+
+	// Check if the -t flag is provided
+	if *trimFlag {
+		// Read passwordnova_result.txt and generate password_trim.txt with domain removed
+		trimFile, err := os.Open(outputFile)
+		if err != nil {
+			fmt.Println("Error opening result file:", err)
+			return
+		}
+		defer trimFile.Close()
+
+		// Create password_trim.txt for writing
+		trimOutFile, err := os.Create("password_trim.txt")
+		if err != nil {
+			fmt.Println("Error creating trim output file:", err)
+			return
+		}
+		defer trimOutFile.Close()
+
+		// Create a map to store unique passwords for each username
+		trimmedPasswordMap := make(map[string]map[string]bool)
+		var trimmedPasswordMutex sync.Mutex
+
+		// Read lines from passwordnova_result.txt and write to password_trim.txt with domain removed
+		scanner := bufio.NewScanner(trimFile)
+		for scanner.Scan() {
+			line := scanner.Text()
+			parts := strings.Split(line, ":")
+			if len(parts) == 2 {
+				username := parts[0]
+				password := parts[1]
+
+				// Skip line if password is empty
+				if password == "" {
+					continue
+				}
+
+				// Check if username exists in the trimmedPasswordMap
+				trimmedPasswordMutex.Lock()
+				if _, ok := trimmedPasswordMap[username]; !ok {
+					trimmedPasswordMap[username] = make(map[string]bool)
+				}
+
+				// Check if password is unique for the username
+				if !trimmedPasswordMap[username][password] {
+					trimmedPasswordMap[username][password] = true
+					idx := strings.Index(username, "@")
+					if idx != -1 {
+						username = username[:idx]
+					}
+					trimmedLine := username + ":" + password
+					fmt.Fprintln(trimOutFile, trimmedLine)
+				}
+				trimmedPasswordMutex.Unlock()
+			}
+		}
+
+		fmt.Println("Trimmed results have been exported to password_trim.txt")
+	}
 }
