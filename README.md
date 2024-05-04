@@ -6,12 +6,12 @@ passwordnova.go
 go build passwordnova.go
 ./passwordnove -u <username list file> -t
 ```
-It outputs passwordnova_result.txt contains the result from proxynova in format of [user email addaress]:[password]
+Fenerates passwordnova_result.txt containing the result from proxynova in format of [user email addaress]:[password]
 
 ![image](https://github.com/restdone/passwordnova/assets/42227817/baed1f09-4f30-433b-be9d-81ed4c51af7a)
 
 
--t is used to remove the domain in email address. It generates password_trim.txt in format of [username]:[password]
+-t remove the domain in email address. It generates password_trim.txt in format of [username]:[password]
 
 ![image](https://github.com/restdone/passwordnova/assets/42227817/095d864c-7396-406d-a555-6d8ee76c74c4)
 
@@ -30,7 +30,7 @@ userpassworcount.go
 go build userpasswordcount
 userpasswordcount -t x
 ```
-count how many occurance for the same user name in password_trim. -t to specify the threasold. Before brute-forcing, it should make sure that such Brute-Force would not lock the account.
+Count how many password occurence for the same user name in password_trim. -t to specify the threasold.
 
 ![image](https://github.com/restdone/passwordnova/assets/42227817/d0387a60-a211-4d4f-ba9b-df5b4a906e42)
 
@@ -38,7 +38,7 @@ count how many occurance for the same user name in password_trim. -t to specify 
 
 removepassword.go
 =================
-After finding which account has too many password, this can be used to find the list of password belongs to this user and remove them from password_trim
+Find the list of password belongs to user with too many passwords and remove them from password_trim.txt
 ```
 go build removepassword.go
 ./removepassword <user name>
