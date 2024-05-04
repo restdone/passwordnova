@@ -1,4 +1,4 @@
-A tool to massively request breached password from ProxyNova https://www.proxynova.com/tools/comb/ and modify them for password spray/brute-force
+A tool to  request breached password from ProxyNova https://www.proxynova.com/tools/comb/ and modify them for password spray/brute-force
 
 passwordnova.go
 =====================
