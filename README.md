@@ -22,4 +22,8 @@ hydra -C <file> <dc> <service>
 
 userpassworcount.go
 =====================
+```
+go build userpasswordcount
+userpasswordcount -t x
+```
 count how many occurance for the same user name in password_trim. -t to specify the threasold. Before brute-forcing, it should make sure that such Brute-Force would not lock the account.
