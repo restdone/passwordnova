@@ -1,5 +1,5 @@
 A tool to massively request breached password from ProxyNova https://www.proxynova.com/tools/comb/
-=====================
+
 passwordnova.go
 =====================
 ```
