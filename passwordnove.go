@@ -20,7 +20,6 @@ type Response struct {
 func main() {
 	// Define command-line flags
 	usernameFile := flag.String("u", "", "Path to the file containing usernames")
-	filterString := flag.String("d", "", "String to filter the lines")
 	trimFlag := flag.Bool("t", false, "Flag to trim domain from email addresses")
 	flag.Parse()
 
