@@ -84,7 +84,6 @@ func main() {
 					return
 				}
 
-
 				// Process and send response to results channel
 				for _, line := range resp.Lines {
 					// Split the line by ":" to extract username and password
@@ -164,10 +163,6 @@ func main() {
 		}
 		defer trimOutFile.Close()
 
-		// Create a map to store unique passwords for each username
-		trimmedPasswordMap := make(map[string]map[string]bool)
-		var trimmedPasswordMutex sync.Mutex
-
 		// Read lines from passwordnova_result.txt and write to password_trim.txt with domain removed
 		scanner := bufio.NewScanner(trimFile)
 		for scanner.Scan() {
@@ -182,26 +177,46 @@ func main() {
 					continue
 				}
 
-				// Check if username exists in the trimmedPasswordMap
-				trimmedPasswordMutex.Lock()
-				if _, ok := trimmedPasswordMap[username]; !ok {
-					trimmedPasswordMap[username] = make(map[string]bool)
+				// Remove domain from username
+				idx := strings.Index(username, "@")
+				if idx != -1 {
+					username = username[:idx]
 				}
 
-				// Check if password is unique for the username
-				if !trimmedPasswordMap[username][password] {
-					trimmedPasswordMap[username][password] = true
-					idx := strings.Index(username, "@")
-					if idx != -1 {
-						username = username[:idx]
-					}
-					trimmedLine := username + ":" + password
-					fmt.Fprintln(trimOutFile, trimmedLine)
-				}
-				trimmedPasswordMutex.Unlock()
+				trimmedLine := username + ":" + password
+				fmt.Fprintln(trimOutFile, trimmedLine)
 			}
 		}
 
 		fmt.Println("Trimmed results have been exported to password_trim.txt")
+
+		// Count occurrences of passwords for each username in password_trim.txt
+		passwordCounts := make(map[string]int)
+		trimFile, err = os.Open("password_trim.txt")
+		if err != nil {
+			fmt.Println("Error opening trimmed file:", err)
+			return
+		}
+		defer trimFile.Close()
+
+		scanner = bufio.NewScanner(trimFile)
+		for scanner.Scan() {
+			line := scanner.Text()
+			parts := strings.Split(line, ":")
+			if len(parts) == 2 {
+				username := parts[0]
+			
+
+				// Increment password count for the username
+				passwordCounts[username]++
+			}
+		}
+
+		// Display usernames with password count over 4
+		for username, count := range passwordCounts {
+			if count > 4 {
+				fmt.Printf("Username: %s, Password Count: %d\n", username, count)
+			}
+		}
 	}
 }
