@@ -45,8 +45,10 @@ go build removepassword.go
 ./removepassword <user name>
 ```
 ![image](https://github.com/restdone/passwordnova/assets/42227817/ea8129e6-c6e1-41f3-a99c-80057459d760)
+
 Before:
 ![image](https://github.com/restdone/passwordnova/assets/42227817/bb19af8b-1047-4eb0-8c56-5667d5e2b75d)
+
 After:
 ![image](https://github.com/restdone/passwordnova/assets/42227817/5c5a0b18-c130-4c45-a32f-eebe453f3929)
 
