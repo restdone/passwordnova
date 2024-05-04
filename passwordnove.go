@@ -21,7 +21,14 @@ func main() {
 	// Define command-line flags
 	usernameFile := flag.String("u", "", "Path to the file containing usernames")
 	trimFlag := flag.Bool("t", false, "Flag to trim domain from email addresses")
+	noNumFlag := flag.Bool("nonum", false, "Flag to remove lines with numeric passwords")
 	flag.Parse()
+
+	// Check if no arguments are provided
+	if flag.NFlag() == 0 {
+		flag.Usage()
+		return
+	}
 
 	// Check if the username file flag is provided
 	if *usernameFile == "" {
@@ -56,6 +63,10 @@ func main() {
 	// Create a map to store unique passwords for each username
 	passwordMap := make(map[string]map[string]bool)
 	var passwordMutex sync.Mutex
+
+	// Create a map to store counts of passwords for each user
+	passwordCount := make(map[string]int)
+	var countMutex sync.Mutex
 
 	// Spawn multiple goroutines to make requests concurrently
 	for _, username := range usernames {
@@ -94,6 +105,11 @@ func main() {
 
 						// Skip line if password is empty
 						if password == "" {
+							continue
+						}
+
+						// Check if numeric passwords should be skipped
+						if *noNumFlag && containsNumbersOnly(password) {
 							continue
 						}
 
@@ -172,8 +188,8 @@ func main() {
 				username := parts[0]
 				password := parts[1]
 
-				// Skip line if password is empty
-				if password == "" {
+				// Skip line if password is empty or contains numbers only
+				if password == "" || (*noNumFlag && containsNumbersOnly(password)) {
 					continue
 				}
 
@@ -185,38 +201,39 @@ func main() {
 
 				trimmedLine := username + ":" + password
 				fmt.Fprintln(trimOutFile, trimmedLine)
+
+				// Update password count for the user
+				countMutex.Lock()
+				passwordCount[username]++
+				countMutex.Unlock()
 			}
 		}
 
 		fmt.Println("Trimmed results have been exported to password_trim.txt")
+	}
 
-		// Count occurrences of passwords for each username in password_trim.txt
-		passwordCounts := make(map[string]int)
-		trimFile, err = os.Open("password_trim.txt")
-		if err != nil {
-			fmt.Println("Error opening trimmed file:", err)
-			return
+	// Display users with password occurrences over 4
+	for user, count := range passwordCount {
+		if count > 4 {
+			fmt.Printf("User: %s, Password Occurrences: %d\n", user, count)
 		}
-		defer trimFile.Close()
+	}
+}
 
-		scanner = bufio.NewScanner(trimFile)
-		for scanner.Scan() {
-			line := scanner.Text()
-			parts := strings.Split(line, ":")
-			if len(parts) == 2 {
-				username := parts[0]
-			
-
-				// Increment password count for the username
-				passwordCounts[username]++
-			}
+// Function to check if a string contains numbers only
+func containsNumbersOnly(s string) bool {
+	for _, r := range s {
+		if r < '0' || r > '9' {
+			return false
 		}
+	}
+	return true
+}
 
-		// Display usernames with password count over 4
-		for username, count := range passwordCounts {
-			if count > 4 {
-				fmt.Printf("Username: %s, Password Count: %d\n", username, count)
-			}
-		}
+func init() {
+	flag.Usage = func() {
+		fmt.Fprintf(flag.CommandLine.Output(), "Usage: %s [options]\n", os.Args[0])
+		fmt.Println("Options:")
+		flag.PrintDefaults()
 	}
 }
