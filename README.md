@@ -27,3 +27,12 @@ go build userpasswordcount
 userpasswordcount -t x
 ```
 count how many occurance for the same user name in password_trim. -t to specify the threasold. Before brute-forcing, it should make sure that such Brute-Force would not lock the account.
+
+removepassword.go
+=================
+After finding which account has too many password, this can be used to find the list of password belongs to this user and remove them from password_trim
+```
+go build removepassword.go
+./removepassword <user name>
+```
+![image](https://github.com/restdone/passwordnova/assets/42227817/ea8129e6-c6e1-41f3-a99c-80057459d760)
